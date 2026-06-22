@@ -1,0 +1,183 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #080d18;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.login-body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.login-box {
+  width: 360px;
+  background: #121a2b;
+  padding: 30px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 0 30px #000;
+}
+
+.login-box h1 {
+  margin-bottom: 10px;
+}
+
+.login-box p {
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+button {
+  background: #f97316;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #fb923c;
+}
+
+.danger-btn {
+  background: #dc2626;
+}
+
+.danger-btn:hover {
+  background: #ef4444;
+}
+
+#loginMsg {
+  display: block;
+  margin-top: 15px;
+  color: #f87171;
+}
+
+header {
+  background: #111827;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header button {
+  width: auto;
+  padding: 10px 18px;
+  margin-top: 0;
+}
+
+main {
+  width: 1000px;
+  max-width: 95%;
+  margin: 30px auto;
+}
+
+.card {
+  background: #121a2b;
+  padding: 25px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  border: 1px solid #1f2937;
+}
+
+.card h2 {
+  margin-bottom: 15px;
+}
+
+.player,
+.match {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.pending-card {
+  border-left: 5px solid #facc15;
+}
+
+.finished-card {
+  border-left: 5px solid #3b82f6;
+}
+
+.pending {
+  color: #facc15;
+  font-weight: bold;
+}
+
+.finished {
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.winner {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.loser {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.match-counter {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.admin-match {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media (max-width: 600px) {
+  .login-box {
+    width: 92%;
+  }
+
+  header {
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 20px;
+  }
+
+  .player,
+  .match {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .match-counter {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

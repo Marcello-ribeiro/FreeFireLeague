@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - FreeFire League</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header>
+    <h1>⚙️ Painel Admin</h1>
+    <button onclick="logout()">Sair</button>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Criar Jogador</h2>
+
+      <input id="newUser" placeholder="Usuário">
+      <input id="newPass" placeholder="Senha">
+
+      <select id="newPlatform">
+        <option value="Mobile">📱 Mobile</option>
+        <option value="Emulador">🖥️ Emulador</option>
+      </select>
+
+      <button onclick="criarJogador()">Criar jogador</button>
+    </section>
+
+    <section class="card">
+      <h2>Jogadores</h2>
+      <div id="ranking"></div>
+    </section>
+
+   <section class="card">
+  <h2>Confrontos</h2>
+  <button onclick="gerarConfrontos()">Gerar confrontos</button>
+  <div id="adminMatches"></div>
+</section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

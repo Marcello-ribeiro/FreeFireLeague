@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ranking - FreeFire League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header>
+    <h1>🏆 FreeFire League</h1>
+    <button onclick="logout()">Sair</button>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Ranking</h2>
+      <div id="ranking"></div>
+    </section>
+
+    <section class="card">
+      <h2>Confrontos</h2>
+      <div id="matches"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
