@@ -9,37 +9,54 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <header>
-    <h1>🏆 FFLG</h1>
-    <button onclick="logout()">Sair</button>
-  </header>
+  <section class="hero">
+    <div>
+      <span class="badge">🔥 Liga Free Fire</span>
+      <h1>FFLG Championship</h1>
+      <p>Ranking, confrontos e resultados atualizados em tempo real.</p>
+    </div>
+  </section>
 
   <main>
-    <section class="card">
-      <h2>Ranking</h2>
+    <section class="stats-grid">
+      <div class="mini-card">
+        <span>🏆</span>
+        <strong id="totalPlayers">0</strong>
+        <p>Jogadores</p>
+      </div>
+
+      <div class="mini-card">
+        <span>🟡</span>
+        <strong id="totalPending">0</strong>
+        <p>Pendentes</p>
+      </div>
+
+      <div class="mini-card">
+        <span>🔵</span>
+        <strong id="totalFinished">0</strong>
+        <p>Finalizadas</p>
+      </div>
+    </section>
+
+    <section class="card ranking-card">
+      <h2>🏆 Ranking</h2>
       <div id="ranking"></div>
     </section>
 
     <section class="card">
-      <h2>Confrontos</h2>
+      <h2>⚔️ Confrontos</h2>
+
+      <div class="filters">
+        <input id="searchPlayer" placeholder="Buscar jogador">
+        <button onclick="filtrarPartidas()">Buscar</button>
+        <button onclick="limparFiltro()">Limpar</button>
+      </div>
+
       <div id="matches"></div>
     </section>
   </main>
 
-<div id="modalOverlay" class="modal-overlay hidden">
-  <div class="modal-box">
-    <h2 id="modalTitle">Confirmação</h2>
-    <p id="modalText"></p>
-
-    <input id="modalInput" class="hidden" placeholder="Digite aqui">
-
-    <div class="modal-actions">
-      <button class="danger-btn" id="modalConfirm">Confirmar</button>
-      <button id="modalCancel">Cancelar</button>
-    </div>
-  </div>
-</div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -89,6 +89,8 @@ async function carregarRanking() {
   const ranking = document.getElementById("ranking");
   if (!ranking) return;
 
+
+
   const user = JSON.parse(localStorage.getItem("ff_user"));
 
   const { data, error } = await db
@@ -102,6 +104,9 @@ async function carregarRanking() {
     ranking.innerHTML = "<p>Erro ao carregar ranking.</p>";
     return;
   }
+
+  const totalPlayers = document.getElementById("totalPlayers");
+if (totalPlayers) totalPlayers.innerText = data.length;
 
   ranking.innerHTML = data.map((p, i) => `
     <div class="player">
@@ -144,6 +149,8 @@ function montarConfrontoPublico(m) {
   `;
 }
 
+let todasPartidas = [];
+
 async function carregarConfrontos() {
   const matches = document.getElementById("matches");
   if (!matches) return;
@@ -158,8 +165,22 @@ async function carregarConfrontos() {
     return;
   }
 
+  todasPartidas = data;
+  renderizarConfrontos(data);
+}
+
+function renderizarConfrontos(data) {
+  const matches = document.getElementById("matches");
+  if (!matches) return;
+
   const pendentes = data.filter(m => m.status !== "finished").length;
   const finalizados = data.filter(m => m.status === "finished").length;
+
+  const totalPending = document.getElementById("totalPending");
+const totalFinished = document.getElementById("totalFinished");
+
+if (totalPending) totalPending.innerText = pendentes;
+if (totalFinished) totalFinished.innerText = finalizados;
 
   matches.innerHTML = `
     <div class="match-counter">
@@ -168,6 +189,27 @@ async function carregarConfrontos() {
     </div>
     ${data.map(montarConfrontoPublico).join("")}
   `;
+}
+
+function filtrarPartidas() {
+  const input = document.getElementById("searchPlayer");
+  if (!input) return;
+
+  const nome = input.value.trim().toLowerCase();
+
+  const filtradas = todasPartidas.filter(m =>
+    m.player1.toLowerCase().includes(nome) ||
+    m.player2.toLowerCase().includes(nome)
+  );
+
+  renderizarConfrontos(filtradas);
+}
+
+function limparFiltro() {
+  const input = document.getElementById("searchPlayer");
+  if (input) input.value = "";
+
+  renderizarConfrontos(todasPartidas);
 }
 
 async function criarJogador() {

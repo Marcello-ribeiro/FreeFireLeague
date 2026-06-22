@@ -258,3 +258,115 @@ main {
 .hidden {
   display: none !important;
 }
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filters input {
+  flex: 1;
+}
+
+.filters button {
+  width: auto;
+  padding: 12px 18px;
+}
+
+.hero {
+  max-width: 1000px;
+  margin: 30px auto 20px;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #172554, #111827 55%, #431407);
+  border: 1px solid #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: 42px;
+  margin: 10px 0;
+}
+
+.hero p {
+  color: #cbd5e1;
+}
+
+.badge {
+  background: #f97316;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: bold;
+}
+
+.admin-link {
+  color: white;
+  background: #0f172a;
+  border: 1px solid #475569;
+  padding: 12px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.mini-card {
+  background: #121a2b;
+  border: 1px solid #1f2937;
+  border-radius: 18px;
+  padding: 20px;
+  text-align: center;
+}
+
+.mini-card span {
+  font-size: 28px;
+}
+
+.mini-card strong {
+  display: block;
+  font-size: 30px;
+  margin-top: 8px;
+}
+
+.mini-card p {
+  color: #94a3b8;
+}
+
+.ranking-card .player:first-child {
+  background: linear-gradient(135deg, #422006, #1e293b);
+  border: 1px solid #facc15;
+}
+
+.ranking-card .player:nth-child(2) {
+  border: 1px solid #94a3b8;
+}
+
+.ranking-card .player:nth-child(3) {
+  border: 1px solid #b45309;
+}
+
+@media (max-width: 700px) {
+  .hero {
+    margin: 15px;
+    flex-direction: column;
+    gap: 18px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
