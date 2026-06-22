@@ -3,6 +3,49 @@ const supabaseKey = "sb_publishable_1jVPP9Hfm_XvcScHjqOiVA_LMGRqoNa";
 
 const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+function abrirModal({ title, text, input = false, confirmText = "Confirmar" }) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById("modalOverlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalText = document.getElementById("modalText");
+    const modalInput = document.getElementById("modalInput");
+    const confirmBtn = document.getElementById("modalConfirm");
+    const cancelBtn = document.getElementById("modalCancel");
+
+    if (!overlay) {
+      resolve(window.confirm(text));
+      return;
+    }
+
+    modalTitle.innerText = title;
+    modalText.innerText = text;
+    confirmBtn.innerText = confirmText;
+
+    modalInput.value = "";
+    modalInput.classList.toggle("hidden", !input);
+
+    overlay.classList.remove("hidden");
+
+    confirmBtn.onclick = () => {
+      overlay.classList.add("hidden");
+      resolve(input ? modalInput.value : true);
+    };
+
+    cancelBtn.onclick = () => {
+      overlay.classList.add("hidden");
+      resolve(false);
+    };
+  });
+}
+
+async function avisoBonito(title, text) {
+  await abrirModal({
+    title,
+    text,
+    confirmText: "OK"
+  });
+}
+
 async function login(event) {
   if (event) event.preventDefault();
 
@@ -22,7 +65,6 @@ async function login(event) {
   }
 
   localStorage.setItem("ff_user", JSON.stringify(data));
-
   window.location.href = data.role === "admin" ? "admin.html" : "index.html";
 }
 
@@ -62,16 +104,16 @@ async function carregarRanking() {
 
   ranking.innerHTML = data.map((p, i) => `
     <div class="player">
-      <div>
-        <strong>#${i + 1} ${p.platform === "Mobile" ? "📱" : "🖥️"} ${p.username}</strong>
+      <strong>#${i + 1} ${p.platform === "Mobile" ? "📱" : "🖥️"} ${p.username}</strong>
+
+      <div class="stats">
+        <span class="stat points">🏆 ${p.points} pts</span>
+        <span class="stat wins">✅ ${p.wins} V</span>
+        <span class="stat losses">❌ ${p.losses} D</span>
       </div>
 
-      <span>${p.points} pts | V: ${p.wins} | D: ${p.losses}</span>
-
       ${user?.role === "admin" ? `
-        <button class="danger-btn" onclick="apagarJogador('${p.id}')">
-          Apagar
-        </button>
+        <button class="danger-btn" onclick="apagarJogador('${p.id}')">Apagar</button>
       ` : ""}
     </div>
   `).join("");
@@ -88,7 +130,6 @@ function montarConfrontoPublico(m) {
           <span> venceu </span>
           <span class="loser">${loserName}</span>
         </strong>
-
         <span class="finished">${m.score} • FINALIZADO</span>
       </div>
     `;
@@ -97,7 +138,7 @@ function montarConfrontoPublico(m) {
   return `
     <div class="match pending-card">
       <strong>${m.player1} x ${m.player2}</strong>
-      <span class="pending">Pendente</span>
+      <span class="pending">PENDENTE</span>
     </div>
   `;
 }
@@ -134,7 +175,7 @@ async function criarJogador() {
   const platform = document.getElementById("newPlatform").value;
 
   if (!username || !password) {
-    alert("Preencha usuário e senha.");
+    await avisoBonito("Dados incompletos", "Preencha usuário e senha.");
     return;
   }
 
@@ -143,7 +184,7 @@ async function criarJogador() {
   ]);
 
   if (error) {
-    alert(error.message);
+    await avisoBonito("Erro", error.message);
     return;
   }
 
@@ -151,13 +192,20 @@ async function criarJogador() {
   document.getElementById("newPass").value = "";
 
   carregarRanking();
+  await avisoBonito("Jogador criado", "O jogador foi criado com sucesso.");
 }
 
 async function gerarConfrontos() {
   const { data: existing } = await db.from("matches").select("id");
 
   if (existing && existing.length > 0) {
-    if (!confirm("Já existem confrontos. Gerar de novo vai duplicar. Continuar?")) return;
+    const ok = await abrirModal({
+      title: "Confrontos existentes",
+      text: "Já existem confrontos. Gerar de novo pode duplicar partidas. Continuar?",
+      confirmText: "Gerar mesmo assim"
+    });
+
+    if (!ok) return;
   }
 
   const { data: players, error } = await db
@@ -166,7 +214,7 @@ async function gerarConfrontos() {
     .eq("role", "player");
 
   if (error || !players || players.length < 2) {
-    alert("Precisa ter pelo menos 2 jogadores.");
+    await avisoBonito("Poucos jogadores", "Precisa ter pelo menos 2 jogadores.");
     return;
   }
 
@@ -187,16 +235,24 @@ async function gerarConfrontos() {
   const { error: insertError } = await db.from("matches").insert(confrontos);
 
   if (insertError) {
-    alert(insertError.message);
+    await avisoBonito("Erro", insertError.message);
     return;
   }
 
   carregarConfrontosAdmin();
   carregarConfrontos();
+
+  await avisoBonito("Confrontos gerados", "Todos os confrontos foram criados.");
 }
 
 async function apagarJogador(id) {
-  if (!confirm("Apagar jogador? Isso também apaga os confrontos dele.")) return;
+  const ok = await abrirModal({
+    title: "Apagar jogador",
+    text: "Isso também apagará todos os confrontos desse jogador.",
+    confirmText: "Apagar"
+  });
+
+  if (!ok) return;
 
   await db.from("matches").delete().or(`player1_id.eq.${id},player2_id.eq.${id}`);
   await db.from("users").delete().eq("id", id);
@@ -204,6 +260,8 @@ async function apagarJogador(id) {
   carregarRanking();
   carregarConfrontosAdmin();
   carregarConfrontos();
+
+  await avisoBonito("Jogador apagado", "Jogador e confrontos relacionados foram apagados.");
 }
 
 async function carregarConfrontosAdmin() {
@@ -229,48 +287,39 @@ async function carregarConfrontosAdmin() {
       <span class="finished">Finalizadas: ${finalizados}</span>
     </div>
 
-    ${data.map(m => {
-      if (m.status === "finished") {
-        const loserName = m.player1 === m.winner ? m.player2 : m.player1;
+    ${data.map(m => `
+      <div class="match ${m.status === "finished" ? "finished-card" : "pending-card"} admin-match">
+        <strong>
+          ${m.status === "finished"
+            ? `<span class="winner">${m.winner}</span> venceu <span class="loser">${m.player1 === m.winner ? m.player2 : m.player1}</span>`
+            : `${m.player1} x ${m.player2}`
+          }
+        </strong>
 
-        return `
-          <div class="match finished-card admin-match">
-            <strong>
-              <span class="winner">${m.winner}</span>
-              venceu
-              <span class="loser">${loserName}</span>
-            </strong>
+        <select id="winner-${m.id}">
+          <option value="">Vencedor</option>
+          <option value="${m.player1_id}|${m.player1}|${m.player2_id}|${m.player2}">
+            ${m.player1}
+          </option>
+          <option value="${m.player2_id}|${m.player2}|${m.player1_id}|${m.player1}">
+            ${m.player2}
+          </option>
+        </select>
 
-            <span class="finished">${m.score} • FINALIZADO</span>
-          </div>
-        `;
-      }
+        <select id="score-${m.id}">
+          <option value="2x0">2x0</option>
+          <option value="2x1">2x1</option>
+        </select>
 
-      return `
-        <div class="match pending-card admin-match">
-          <strong>${m.player1} x ${m.player2}</strong>
+        <button onclick="salvarResultado('${m.id}')">
+          ${m.status === "finished" ? "Editar resultado" : "Salvar resultado"}
+        </button>
 
-          <select id="winner-${m.id}">
-            <option value="">Vencedor</option>
-            <option value="${m.player1_id}|${m.player1}|${m.player2_id}|${m.player2}">
-              ${m.player1}
-            </option>
-            <option value="${m.player2_id}|${m.player2}|${m.player1_id}|${m.player1}">
-              ${m.player2}
-            </option>
-          </select>
-
-          <select id="score-${m.id}">
-            <option value="2x0">2x0</option>
-            <option value="2x1">2x1</option>
-          </select>
-
-          <button onclick="salvarResultado('${m.id}')">Salvar resultado</button>
-
-          <span class="pending">Pendente</span>
-        </div>
-      `;
-    }).join("")}
+        <span class="${m.status === "finished" ? "finished" : "pending"}">
+          ${m.status === "finished" ? `${m.score} • FINALIZADO` : "PENDENTE"}
+        </span>
+      </div>
+    `).join("")}
   `;
 }
 
@@ -279,30 +328,57 @@ async function salvarResultado(matchId) {
   const score = document.getElementById(`score-${matchId}`).value;
 
   if (!winnerValue) {
-    alert("Escolha o vencedor.");
+    await avisoBonito("Resultado incompleto", "Escolha o vencedor.");
     return;
   }
 
-  const [winnerId, winnerName, loserId, loserName] = winnerValue.split("|");
+  const { data: oldMatch } = await db
+    .from("matches")
+    .select("*")
+    .eq("id", matchId)
+    .single();
+
+  const [winnerId, winnerName, loserId] = winnerValue.split("|");
 
   const winnerPoints = score === "2x0" ? 3 : 2;
   const loserPoints = score === "2x0" ? 0 : 1;
 
-  const { error } = await db
-    .from("matches")
-    .update({
-      winner_id: winnerId,
-      loser_id: loserId,
-      winner: winnerName,
-      score,
-      winner_points: winnerPoints,
-      loser_points: loserPoints,
-      status: "finished"
-    })
-    .eq("id", matchId);
+  if (oldMatch.status === "finished") {
+    const ok = await abrirModal({
+      title: "Editar resultado",
+      text: "Esse confronto já estava finalizado. O sistema vai remover os pontos antigos e aplicar os novos.",
+      confirmText: "Editar"
+    });
+
+    if (!ok) return;
+
+    await db.rpc("increment_user_points", {
+      user_id_input: oldMatch.winner_id,
+      points_input: -oldMatch.winner_points,
+      win_input: -1,
+      loss_input: 0
+    });
+
+    await db.rpc("increment_user_points", {
+      user_id_input: oldMatch.loser_id,
+      points_input: -oldMatch.loser_points,
+      win_input: 0,
+      loss_input: -1
+    });
+  }
+
+  const { error } = await db.from("matches").update({
+    winner_id: winnerId,
+    loser_id: loserId,
+    winner: winnerName,
+    score,
+    winner_points: winnerPoints,
+    loser_points: loserPoints,
+    status: "finished"
+  }).eq("id", matchId);
 
   if (error) {
-    alert(error.message);
+    await avisoBonito("Erro", error.message);
     return;
   }
 
@@ -323,6 +399,87 @@ async function salvarResultado(matchId) {
   carregarRanking();
   carregarConfrontosAdmin();
   carregarConfrontos();
+
+  await avisoBonito("Resultado salvo", "O ranking foi atualizado automaticamente.");
+}
+
+async function resetarResultados() {
+  const ok = await abrirModal({
+    title: "Resetar resultados",
+    text: "Isso vai apagar todos os resultados e zerar o ranking, mas manter jogadores e confrontos.",
+    confirmText: "Resetar"
+  });
+
+  if (!ok) return;
+
+  await db.from("matches").update({
+    winner_id: null,
+    loser_id: null,
+    winner: null,
+    score: null,
+    winner_points: 0,
+    loser_points: 0,
+    status: "pending"
+  }).neq("id", "00000000-0000-0000-0000-000000000000");
+
+  await db.from("users").update({
+    points: 0,
+    wins: 0,
+    losses: 0
+  }).eq("role", "player");
+
+  carregarRanking();
+  carregarConfrontos();
+  carregarConfrontosAdmin();
+
+  await avisoBonito("Reset concluído", "Resultados e ranking foram resetados.");
+}
+
+async function apagarConfrontos() {
+  const ok = await abrirModal({
+    title: "Apagar confrontos",
+    text: "Isso apagará todos os confrontos e também zerará o ranking.",
+    confirmText: "Apagar confrontos"
+  });
+
+  if (!ok) return;
+
+  await db.from("matches").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+  await db.from("users").update({
+    points: 0,
+    wins: 0,
+    losses: 0
+  }).eq("role", "player");
+
+  carregarRanking();
+  carregarConfrontos();
+  carregarConfrontosAdmin();
+
+  await avisoBonito("Confrontos apagados", "Todos os confrontos foram apagados.");
+}
+
+async function apagarTudo() {
+  const resposta = await abrirModal({
+    title: "Apagar tudo",
+    text: "Digite RESET para apagar jogadores e confrontos. O admin será mantido.",
+    input: true,
+    confirmText: "Apagar tudo"
+  });
+
+  if (resposta !== "RESET") {
+    await avisoBonito("Cancelado", "A confirmação estava incorreta.");
+    return;
+  }
+
+  await db.from("matches").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await db.from("users").delete().eq("role", "player");
+
+  carregarRanking();
+  carregarConfrontos();
+  carregarConfrontosAdmin();
+
+  await avisoBonito("Tudo apagado", "Jogadores e confrontos foram apagados.");
 }
 
 const user = protegerPagina();

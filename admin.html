@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - FreeFire League</title>
+  <title>Admin - FFLG</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -39,7 +39,38 @@
   <div id="adminMatches"></div>
 </section>
 
+<section class="card danger-zone">
+  <h2>Zona de Reset</h2>
+
+  <button class="danger-btn" onclick="resetarResultados()">
+    Resetar resultados e ranking
+  </button>
+
+  <button class="danger-btn" onclick="apagarConfrontos()">
+    Apagar todos os confrontos
+  </button>
+
+  <button class="danger-btn" onclick="apagarTudo()">
+    Apagar jogadores + confrontos
+  </button>
+</section>
+
   </main>
+
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h2 id="modalTitle">Confirmação</h2>
+    <p id="modalText"></p>
+
+    <input id="modalInput" class="hidden" placeholder="Digite aqui">
+
+    <div class="modal-actions">
+      <button class="danger-btn" id="modalConfirm">Confirmar</button>
+      <button id="modalCancel">Cancelar</button>
+    </div>
+  </div>
+</div>
 
   <script src="script.js"></script>
 </body>
