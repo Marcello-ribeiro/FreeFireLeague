@@ -57,15 +57,16 @@ async function login(event) {
     .select("*")
     .eq("username", username)
     .eq("password", password)
+    .eq("role", "admin")
     .single();
 
   if (error || !data) {
-    document.getElementById("loginMsg").innerText = "Usuário ou senha errado.";
+    document.getElementById("loginMsg").innerText = "Admin ou senha errado.";
     return;
   }
 
-  localStorage.setItem("ff_user", JSON.stringify(data));
-  window.location.href = data.role === "admin" ? "admin.html" : "index.html";
+  localStorage.setItem("ff_admin", "true");
+  window.location.href = "admin.html";
 }
 
 function protegerPagina() {
@@ -80,8 +81,8 @@ function protegerPagina() {
 }
 
 function logout() {
-  localStorage.removeItem("ff_user");
-  window.location.href = "login.html";
+  localStorage.removeItem("ff_admin");
+  window.location.href = "admin-login.html";
 }
 
 async function carregarRanking() {
@@ -482,14 +483,18 @@ async function apagarTudo() {
   await avisoBonito("Tudo apagado", "Jogadores e confrontos foram apagados.");
 }
 
-const user = protegerPagina();
+const pagina = location.pathname;
 
-if (user) {
-  if (location.pathname.includes("admin.html") && user.role !== "admin") {
-    window.location.href = "index.html";
+if (pagina.includes("admin.html")) {
+  const adminLogado = localStorage.getItem("ff_admin");
+
+  if (adminLogado !== "true") {
+    window.location.href = "admin-login.html";
   } else {
     carregarRanking();
-    carregarConfrontos();
     carregarConfrontosAdmin();
   }
+} else {
+  carregarRanking();
+  carregarConfrontos();
 }
