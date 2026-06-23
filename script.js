@@ -138,6 +138,23 @@ Editar
   `).join("");
 }
 
+function filtrarJogadores() {
+  const input = document.getElementById("buscarJogador");
+  const filtro = input.value.toLowerCase();
+
+  const jogadores = document.querySelectorAll("#listaJogadores tr");
+
+  jogadores.forEach((jogador) => {
+    const texto = jogador.innerText.toLowerCase();
+
+    if (texto.includes(filtro)) {
+      jogador.style.display = "";
+    } else {
+      jogador.style.display = "none";
+    }
+  });
+}
+
 function montarConfrontoPublico(m) {
   if (m.status === "finished") {
     const loserName = m.player1 === m.winner ? m.player2 : m.player1;
@@ -326,6 +343,8 @@ async function apagarJogador(id) {
   await avisoBonito("Jogador apagado", "Jogador e confrontos relacionados foram apagados.");
 }
 
+let todosConfrontosAdmin = [];
+
 async function carregarConfrontosAdmin() {
   const box = document.getElementById("adminMatches");
   if (!box) return;
@@ -340,10 +359,33 @@ async function carregarConfrontosAdmin() {
     return;
   }
 
+  todosConfrontosAdmin = data || [];
+  renderizarConfrontosAdmin(todosConfrontosAdmin);
+}
+
+function renderizarConfrontosAdmin(data) {
+  const box = document.getElementById("adminMatches");
+  if (!box) return;
+
   const pendentes = data.filter(m => m.status !== "finished").length;
   const finalizados = data.filter(m => m.status === "finished").length;
 
   box.innerHTML = `
+    <input
+      type="text"
+      id="buscarConfrontoAdmin"
+      placeholder="Pesquisar jogador no confronto..."
+      onkeyup="filtrarConfrontosAdmin()"
+      style="
+        width: 100%;
+        padding: 12px;
+        margin: 12px 0;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+      "
+    >
+
     <div class="match-counter">
       <span class="pending">Pendentes: ${pendentes}</span>
       <span class="finished">Finalizadas: ${finalizados}</span>
@@ -360,12 +402,8 @@ async function carregarConfrontosAdmin() {
 
         <select id="winner-${m.id}">
           <option value="">Vencedor</option>
-          <option value="${m.player1_id}|${m.player1}|${m.player2_id}|${m.player2}">
-            ${m.player1}
-          </option>
-          <option value="${m.player2_id}|${m.player2}|${m.player1_id}|${m.player1}">
-            ${m.player2}
-          </option>
+          <option value="${m.player1_id}|${m.player1}|${m.player2_id}|${m.player2}">${m.player1}</option>
+          <option value="${m.player2_id}|${m.player2}|${m.player1_id}|${m.player1}">${m.player2}</option>
         </select>
 
         <select id="score-${m.id}">
@@ -383,6 +421,27 @@ async function carregarConfrontosAdmin() {
       </div>
     `).join("")}
   `;
+}
+
+function filtrarConfrontosAdmin() {
+  const input = document.getElementById("buscarConfrontoAdmin");
+  if (!input) return;
+
+  const busca = input.value.trim().toLowerCase();
+
+  const filtrados = todosConfrontosAdmin.filter(m =>
+    m.player1.toLowerCase().includes(busca) ||
+    m.player2.toLowerCase().includes(busca) ||
+    (m.winner && m.winner.toLowerCase().includes(busca))
+  );
+
+  renderizarConfrontosAdmin(filtrados);
+
+  const novoInput = document.getElementById("buscarConfrontoAdmin");
+  if (novoInput) {
+    novoInput.value = busca;
+    novoInput.focus();
+  }
 }
 
 async function salvarResultado(matchId) {
