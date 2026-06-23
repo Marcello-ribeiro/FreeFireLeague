@@ -252,26 +252,54 @@ async function criarJogador() {
     return;
   }
 
-  const { error } = await db.from("users").insert([
-        {
-        username,
-        password: password || "123456",
-        platform,
-        avatar,
-        role: "player"
-      }
-  ]);
+ const { data: novoJogador, error } = await db.from("users").insert([
+  {
+    username,
+    password: password || "123456",
+    platform,
+    avatar,
+    role: "player"
+  }
+]).select().single();
 
   if (error) {
     await avisoBonito("Erro", error.message);
     return;
   }
 
+  await gerarConfrontosDoNovoJogador(novoJogador);
+
   document.getElementById("newUser").value = "";
   if (passwordInput) passwordInput.value = "";
 
   carregarRanking();
   await avisoBonito("Jogador criado", "O jogador foi criado com sucesso.");
+}
+
+async function gerarConfrontosDoNovoJogador(novoJogador) {
+  const { data: players, error } = await db
+    .from("users")
+    .select("*")
+    .eq("role", "player")
+    .neq("id", novoJogador.id);
+
+  if (error || !players || players.length === 0) return;
+
+  const confrontos = players.map(player => ({
+    player1_id: novoJogador.id,
+    player2_id: player.id,
+    player1: novoJogador.username,
+    player2: player.username,
+    status: "pending"
+  }));
+
+  const { error: insertError } = await db
+    .from("matches")
+    .insert(confrontos);
+
+  if (insertError) {
+    await avisoBonito("Erro", insertError.message);
+  }
 }
 
 async function gerarConfrontos() {
