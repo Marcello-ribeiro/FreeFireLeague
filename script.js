@@ -3,6 +3,8 @@ const supabaseKey = "sb_publishable_1jVPP9Hfm_XvcScHjqOiVA_LMGRqoNa";
 
 const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+let todasPartidas = [];
+
 function abrirModal({ title, text, input = false, confirmText = "Confirmar" }) {
   return new Promise((resolve) => {
     const overlay = document.getElementById("modalOverlay");
@@ -69,17 +71,6 @@ async function login(event) {
   window.location.href = "admin.html";
 }
 
-function protegerPagina() {
-  const user = JSON.parse(localStorage.getItem("ff_user"));
-
-  if (!user && !location.pathname.includes("login.html")) {
-    window.location.href = "login.html";
-    return null;
-  }
-
-  return user;
-}
-
 function logout() {
   localStorage.removeItem("ff_admin");
   window.location.href = "admin-login.html";
@@ -89,9 +80,7 @@ async function carregarRanking() {
   const ranking = document.getElementById("ranking");
   if (!ranking) return;
 
-
-
-  const user = JSON.parse(localStorage.getItem("ff_user"));
+  const adminLogado = localStorage.getItem("ff_admin") === "true";
 
   const { data, error } = await db
     .from("users")
@@ -106,20 +95,44 @@ async function carregarRanking() {
   }
 
   const totalPlayers = document.getElementById("totalPlayers");
-if (totalPlayers) totalPlayers.innerText = data.length;
+  if (totalPlayers) totalPlayers.innerText = data.length;
 
   ranking.innerHTML = data.map((p, i) => `
-    <div class="player">
-      <strong>#${i + 1} ${p.platform === "Mobile" ? "📱" : "🖥️"} ${p.username}</strong>
+    <div class="player ${i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : ""}">
+      <div class="player-left">
+        <div class="avatar">
+          <img src="${p.avatar || "https://i.imgur.com/4Z7Dz7S.png"}" alt="${p.username}">
+        </div>
 
-      <div class="stats">
-        <span class="stat points">🏆 ${p.points} pts</span>
-        <span class="stat wins">✅ ${p.wins} V</span>
-        <span class="stat losses">❌ ${p.losses} D</span>
+        <div>
+          <strong>
+            #${i + 1}
+            ${p.platform === "Mobile" ? "📱" : "🖥️"}
+            ${p.username}
+          </strong>
+
+          <div class="stats">
+            <span class="stat points">🏆 ${p.points} pts</span>
+            <span class="stat wins">✅ ${p.wins} V</span>
+            <span class="stat losses">❌ ${p.losses} D</span>
+          </div>
+        </div>
       </div>
 
-      ${user?.role === "admin" ? `
-        <button class="danger-btn" onclick="apagarJogador('${p.id}')">Apagar</button>
+      ${adminLogado ? `
+        <div class="admin-actions">
+ <button onclick="editarJogador(
+'${p.id}',
+'${p.username}',
+'${p.avatar || ""}'
+)">
+Editar
+</button>
+
+  <button class="danger-btn" onclick="apagarJogador('${p.id}')">
+    Apagar
+  </button>
+</div>
       ` : ""}
     </div>
   `).join("");
@@ -149,8 +162,6 @@ function montarConfrontoPublico(m) {
   `;
 }
 
-let todasPartidas = [];
-
 async function carregarConfrontos() {
   const matches = document.getElementById("matches");
   if (!matches) return;
@@ -165,8 +176,8 @@ async function carregarConfrontos() {
     return;
   }
 
-  todasPartidas = data;
-  renderizarConfrontos(data);
+  todasPartidas = data || [];
+  renderizarConfrontos(todasPartidas);
 }
 
 function renderizarConfrontos(data) {
@@ -177,10 +188,10 @@ function renderizarConfrontos(data) {
   const finalizados = data.filter(m => m.status === "finished").length;
 
   const totalPending = document.getElementById("totalPending");
-const totalFinished = document.getElementById("totalFinished");
+  const totalFinished = document.getElementById("totalFinished");
 
-if (totalPending) totalPending.innerText = pendentes;
-if (totalFinished) totalFinished.innerText = finalizados;
+  if (totalPending) totalPending.innerText = pendentes;
+  if (totalFinished) totalFinished.innerText = finalizados;
 
   matches.innerHTML = `
     <div class="match-counter">
@@ -214,16 +225,24 @@ function limparFiltro() {
 
 async function criarJogador() {
   const username = document.getElementById("newUser").value.trim();
-  const password = document.getElementById("newPass").value.trim();
+  const passwordInput = document.getElementById("newPass");
+  const password = passwordInput ? passwordInput.value.trim() : "123456";
   const platform = document.getElementById("newPlatform").value;
+  const avatar = document.getElementById("newAvatar").value.trim();
 
-  if (!username || !password) {
-    await avisoBonito("Dados incompletos", "Preencha usuário e senha.");
+  if (!username) {
+    await avisoBonito("Dados incompletos", "Preencha o nome do jogador.");
     return;
   }
 
   const { error } = await db.from("users").insert([
-    { username, password, platform, role: "player" }
+        {
+        username,
+        password: password || "123456",
+        platform,
+        avatar,
+        role: "player"
+      }
   ]);
 
   if (error) {
@@ -232,7 +251,7 @@ async function criarJogador() {
   }
 
   document.getElementById("newUser").value = "";
-  document.getElementById("newPass").value = "";
+  if (passwordInput) passwordInput.value = "";
 
   carregarRanking();
   await avisoBonito("Jogador criado", "O jogador foi criado com sucesso.");
@@ -523,6 +542,63 @@ async function apagarTudo() {
   carregarConfrontosAdmin();
 
   await avisoBonito("Tudo apagado", "Jogadores e confrontos foram apagados.");
+}
+
+async function editarJogador(id, usernameAtual, avatarAtual) {
+
+  const novoNome = await abrirModal({
+    title: "Editar nome",
+    text: "Digite o novo nome do jogador.",
+    input: true,
+    confirmText: "Salvar"
+  });
+
+  if (novoNome === false) return;
+
+  const novaFoto = await abrirModal({
+    title: "Editar foto",
+    text: "Cole a URL da foto de perfil.",
+    input: true,
+    confirmText: "Salvar foto"
+  });
+
+  if (novaFoto === false) return;
+
+  const { error } = await db
+    .from("users")
+    .update({
+      username: novoNome || usernameAtual,
+      avatar: novaFoto || avatarAtual
+    })
+    .eq("id", id);
+
+  if (error) {
+    await avisoBonito("Erro", error.message);
+    return;
+  }
+
+  await db
+    .from("matches")
+    .update({
+      player1: novoNome || usernameAtual
+    })
+    .eq("player1_id", id);
+
+  await db
+    .from("matches")
+    .update({
+      player2: novoNome || usernameAtual
+    })
+    .eq("player2_id", id);
+
+  await avisoBonito(
+    "Sucesso",
+    "Jogador atualizado."
+  );
+
+  carregarRanking();
+  carregarConfrontos();
+  carregarConfrontosAdmin();
 }
 
 const pagina = location.pathname;

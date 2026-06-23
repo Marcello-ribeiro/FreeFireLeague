@@ -1,62 +1,98 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Ranking - FFLG</title>
-  <link rel="icon" href="favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FFLG Championship</title>
+
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
-  <section class="hero">
-    <div>
-      <span class="badge">🔥 Liga Free Fire</span>
-      <h1>FFLG Championship</h1>
-      <p>Ranking, confrontos e resultados atualizados em tempo real.</p>
+
+<section class="hero">
+  <div class="hero-content">
+
+    <span class="badge">🔥 Liga Oficial Free Fire</span>
+
+    <h1>FFLG Championship</h1>
+
+    <p>
+      Ranking atualizado em tempo real, confrontos,
+      resultados e estatísticas dos jogadores.
+    </p>
+
+  </div>
+</section>
+
+<main>
+
+  <section class="stats-grid">
+
+    <div class="mini-card">
+      <span class="icon">🤺</span>
+      <strong id="totalPlayers">0</strong>
+      <p>Jogadores</p>
     </div>
+
+    <div class="mini-card">
+      <span class="icon">🌐</span>
+      <strong id="totalPending">0</strong>
+      <p>Pendentes</p>
+    </div>
+
+    <div class="mini-card">
+      <span class="icon">✅</span>
+      <strong id="totalFinished">0</strong>
+      <p>Finalizadas</p>
+    </div>
+
   </section>
 
-  <main>
-    <section class="stats-grid">
-      <div class="mini-card">
-        <span>🏆</span>
-        <strong id="totalPlayers">0</strong>
-        <p>Jogadores</p>
-      </div>
+  <section class="card ranking-card">
 
-      <div class="mini-card">
-        <span>🟡</span>
-        <strong id="totalPending">0</strong>
-        <p>Pendentes</p>
-      </div>
+    <div class="section-title">
+      <h2>🏆 Ranking Oficial</h2>
+    </div>
 
-      <div class="mini-card">
-        <span>🔵</span>
-        <strong id="totalFinished">0</strong>
-        <p>Finalizadas</p>
-      </div>
-    </section>
+    <div id="ranking"></div>
 
-    <section class="card ranking-card">
-      <h2>🏆 Ranking</h2>
-      <div id="ranking"></div>
-    </section>
+  </section>
 
-    <section class="card">
+  <section class="card">
+
+    <div class="section-title">
       <h2>⚔️ Confrontos</h2>
+    </div>
 
-      <div class="filters">
-        <input id="searchPlayer" placeholder="Buscar jogador">
-        <button onclick="filtrarPartidas()">Buscar</button>
-        <button onclick="limparFiltro()">Limpar</button>
-      </div>
+    <div class="filters">
 
-      <div id="matches"></div>
-    </section>
-  </main>
+      <input
+        id="searchPlayer"
+        placeholder="Buscar jogador..."
+      >
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
+      <button onclick="filtrarPartidas()">
+        Buscar
+      </button>
+
+      <button onclick="limparFiltro()">
+        Limpar
+      </button>
+
+    </div>
+
+    <div id="matches"></div>
+
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+
 </body>
 </html>
