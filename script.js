@@ -118,7 +118,7 @@ async function carregarRanking() {
           </div>
         </div>
       </div>
-
+ 
       ${adminLogado ? `
         <div class="admin-actions">
  <button onclick="editarJogador(
