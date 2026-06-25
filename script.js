@@ -428,11 +428,11 @@ function renderizarConfrontosAdmin(data) {
           }
         </strong>
 
-        <select id="winner-${m.id}">
-          <option value="">Vencedor</option>
-          <option value="${m.player1_id}|${m.player1}|${m.player2_id}|${m.player2}">${m.player1}</option>
-          <option value="${m.player2_id}|${m.player2}|${m.player1_id}|${m.player1}">${m.player2}</option>
-        </select>
+      <select id="winner-${m.id}">
+  <option value="reset">Ninguém venceu ainda</option>
+  <option value="${m.player1_id}|${m.player1}|${m.player2_id}|${m.player2}">${m.player1}</option>
+  <option value="${m.player2_id}|${m.player2}|${m.player1_id}|${m.player1}">${m.player2}</option>
+</select>
 
         <select id="score-${m.id}">
           <option value="2x0">2x0</option>
@@ -475,6 +475,47 @@ function filtrarConfrontosAdmin() {
 async function salvarResultado(matchId) {
   const winnerValue = document.getElementById(`winner-${matchId}`).value;
   const score = document.getElementById(`score-${matchId}`).value;
+
+  if (winnerValue === "reset") {
+  const { data: oldMatch } = await db
+    .from("matches")
+    .select("*")
+    .eq("id", matchId)
+    .single();
+
+  if (oldMatch.status === "finished") {
+    await db.rpc("increment_user_points", {
+      user_id_input: oldMatch.winner_id,
+      points_input: -oldMatch.winner_points,
+      win_input: -1,
+      loss_input: 0
+    });
+
+    await db.rpc("increment_user_points", {
+      user_id_input: oldMatch.loser_id,
+      points_input: -oldMatch.loser_points,
+      win_input: 0,
+      loss_input: -1
+    });
+  }
+
+  await db.from("matches").update({
+    winner_id: null,
+    loser_id: null,
+    winner: null,
+    score: null,
+    winner_points: 0,
+    loser_points: 0,
+    status: "pending"
+  }).eq("id", matchId);
+
+  carregarRanking();
+  carregarConfrontos();
+  carregarConfrontosAdmin();
+
+  await avisoBonito("Resultado revertido", "A partida voltou para pendente.");
+  return;
+}
 
   if (!winnerValue) {
     await avisoBonito("Resultado incompleto", "Escolha o vencedor.");
