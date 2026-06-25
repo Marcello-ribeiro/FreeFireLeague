@@ -86,8 +86,9 @@ async function carregarRanking() {
     .from("users")
     .select("*")
     .neq("role", "admin")
-    .order("points", { ascending: false })
-    .order("wins", { ascending: false });
+   .order("points", { ascending: false })
+.order("wins", { ascending: false })
+.order("losses", { ascending: true });
 
   if (error) {
     ranking.innerHTML = "<p>Erro ao carregar ranking.</p>";
