@@ -121,12 +121,12 @@ async function carregarRanking() {
  
       ${adminLogado ? `
         <div class="admin-actions">
- <button onclick="editarJogador(
-'${p.id}',
-'${p.username}',
-'${p.avatar || ""}'
-)">
-Editar
+<button onclick="editarJogador('${p.id}', '${p.username}')">
+  Editar nome
+</button>
+
+<button onclick="editarAvatar('${p.id}')">
+  Editar foto
 </button>
 
   <button class="danger-btn" onclick="apagarJogador('${p.id}')">
@@ -631,8 +631,7 @@ async function apagarTudo() {
   await avisoBonito("Tudo apagado", "Jogadores e confrontos foram apagados.");
 }
 
-async function editarJogador(id, usernameAtual, avatarAtual) {
-
+async function editarJogador(id, usernameAtual) {
   const novoNome = await abrirModal({
     title: "Editar nome",
     text: "Digite o novo nome do jogador.",
@@ -642,20 +641,12 @@ async function editarJogador(id, usernameAtual, avatarAtual) {
 
   if (novoNome === false) return;
 
-  const novaFoto = await abrirModal({
-    title: "Editar foto",
-    text: "Cole a URL da foto de perfil.",
-    input: true,
-    confirmText: "Salvar foto"
-  });
-
-  if (novaFoto === false) return;
+  const nomeFinal = novoNome || usernameAtual;
 
   const { error } = await db
     .from("users")
     .update({
-      username: novoNome || usernameAtual,
-      avatar: novaFoto || avatarAtual
+      username: nomeFinal
     })
     .eq("id", id);
 
@@ -666,26 +657,68 @@ async function editarJogador(id, usernameAtual, avatarAtual) {
 
   await db
     .from("matches")
-    .update({
-      player1: novoNome || usernameAtual
-    })
+    .update({ player1: nomeFinal })
     .eq("player1_id", id);
 
   await db
     .from("matches")
-    .update({
-      player2: novoNome || usernameAtual
-    })
+    .update({ player2: nomeFinal })
     .eq("player2_id", id);
 
-  await avisoBonito(
-    "Sucesso",
-    "Jogador atualizado."
-  );
+  await avisoBonito("Sucesso", "Nome atualizado.");
 
   carregarRanking();
   carregarConfrontos();
   carregarConfrontosAdmin();
+}
+
+async function editarAvatar(id) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+
+  input.onchange = async () => {
+    const file = input.files[0];
+
+    if (!file) return;
+
+    const extensao = file.name.split(".").pop();
+    const nomeArquivo = `avatar-${id}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await db.storage
+      .from("avatars")
+      .upload(nomeArquivo, file, {
+        cacheControl: "3600",
+        upsert: true
+      });
+
+    if (uploadError) {
+      await avisoBonito("Erro no upload", uploadError.message);
+      return;
+    }
+
+    const { data } = db.storage
+      .from("avatars")
+      .getPublicUrl(nomeArquivo);
+
+    const avatarUrl = data.publicUrl;
+
+    const { error } = await db
+      .from("users")
+      .update({ avatar: avatarUrl })
+      .eq("id", id);
+
+    if (error) {
+      await avisoBonito("Erro", error.message);
+      return;
+    }
+
+    carregarRanking();
+
+    await avisoBonito("Foto atualizada", "Avatar atualizado com sucesso.");
+  };
+
+  input.click();
 }
 
 const pagina = location.pathname;
